@@ -31,7 +31,7 @@ INDEX_PATH = os.path.join(BASE, "index.html")
 
 CSV_FIELDS = [
     "fecha_hora", "precio", "aerolinea", "escalas", "duracion_min",
-    "precio_directo", "aerolinea_directo",
+    "precio_directo", "aerolinea_directo", "duracion_directo", "logo_directo",
     "nivel_precio", "tipico_min", "tipico_max",
 ]
 
@@ -105,6 +105,7 @@ def _resumen(vuelo):
         "aerolinea": " + ".join(aerolineas),
         "escalas": max(0, len(tramos) - 1),
         "duracion_min": vuelo.get("total_duration", ""),
+        "logo": vuelo.get("airline_logo", ""),
     }
 
 
@@ -179,8 +180,18 @@ def generar_reporte(historial, cfg):
     minimo = min(puntos, key=lambda x: x["p"]) if puntos else None
     directos = [x for x in puntos if x["pd"] is not None]
     ult_directo = directos[-1] if directos else None
+    min_dir = min(directos, key=lambda x: x["pd"]) if directos else None
+    dur_dir = historial[-1].get("duracion_directo") if historial else ""
+    logo_dir = historial[-1].get("logo_directo") if historial else ""
     tip_min = historial[-1].get("tipico_min") if historial else ""
     tip_max = historial[-1].get("tipico_max") if historial else ""
+
+    def fmt_dur(mins):
+        try:
+            mins = int(float(mins))
+        except (TypeError, ValueError):
+            return ""
+        return f"{mins // 60} h {mins % 60:02d} min"
 
     nivel = (historial[-1].get("nivel_precio") or "").lower() if historial else ""
     nivel_txt, nivel_clase, consejo = NIVELES.get(
@@ -189,11 +200,17 @@ def generar_reporte(historial, cfg):
     def celda_precio(v):
         return f"${float(v):,.0f}" if v else "—"
 
+    def celda_aero_dir(r):
+        logo = r.get("logo_directo") or ""
+        img = f"<img class='logo' src='{logo}' alt='' loading='lazy'>" if logo else ""
+        return img + (r.get("aerolinea_directo") or "")
+
     filas_tabla = "\n".join(
-        f"<tr><td>{r['fecha_hora']}</td><td class='num'>${float(r['precio']):,.0f}</td>"
-        f"<td>{r.get('aerolinea','')}</td>"
+        f"<tr><td>{r['fecha_hora']}</td>"
         f"<td class='num'>{celda_precio(r.get('precio_directo'))}</td>"
-        f"<td>{r.get('aerolinea_directo','')}</td></tr>"
+        f"<td>{celda_aero_dir(r)}</td>"
+        f"<td class='num'>${float(r['precio']):,.0f}</td>"
+        f"<td>{r.get('aerolinea','')}</td></tr>"
         for r in reversed(historial)
     )
 
@@ -217,6 +234,11 @@ def generar_reporte(historial, cfg):
     html = html.replace("__ACT_AERO__", ultimo["a"] if ultimo else "")
     html = html.replace("__DIRECTO__", f"${ult_directo['pd']:,.0f}" if ult_directo else "—")
     html = html.replace("__DIR_AERO__", ult_directo["ad"] if ult_directo else "")
+    html = html.replace("__DIR_LOGO__",
+                        f'<img class="logo" src="{logo_dir}" alt="">' if logo_dir else "")
+    html = html.replace("__DIR_DUR__", fmt_dur(dur_dir) or "—")
+    html = html.replace("__MIN_DIR__", f"${min_dir['pd']:,.0f}" if min_dir else "—")
+    html = html.replace("__MIN_DIR_FECHA__", min_dir["t"] if min_dir else "aún sin datos")
     html = html.replace("__MINIMO__", f"${minimo['p']:,.0f}" if minimo else "—")
     html = html.replace("__MIN_FECHA__", minimo["t"] if minimo else "")
     html = html.replace("__TIPICO__",
@@ -324,10 +346,12 @@ HTML_TEMPLATE = """<!doctype html>
   .tile{background:var(--card);border:1px solid var(--line);border-radius:12px;
     padding:16px 18px 14px;box-shadow:var(--sombra);position:relative;
     animation:rise .55s ease both}
-  .tile:nth-child(1){animation-delay:.16s;border-top:3px solid var(--sky)}
-  .tile:nth-child(2){animation-delay:.22s;border-top:3px solid var(--coral)}
+  .tile:nth-child(1){animation-delay:.16s;border-top:3px solid var(--coral)}
+  .tile:nth-child(2){animation-delay:.22s}
   .tile:nth-child(3){animation-delay:.28s}
   .tile:nth-child(4){animation-delay:.34s}
+  .logo{width:18px;height:18px;object-fit:contain;vertical-align:-4px;
+    margin-right:4px;border-radius:3px}
   .tile .k{font:500 .62rem/1.3 "IBM Plex Mono",monospace;letter-spacing:.13em;
     color:var(--muted);text-transform:uppercase}
   .tile .v{font:600 1.7rem/1.15 "IBM Plex Mono",monospace;margin-top:8px;
@@ -432,22 +456,22 @@ HTML_TEMPLATE = """<!doctype html>
 <p class="consejo">__CONSEJO__</p>
 
 <div class="tiles">
-  <div class="tile"><div class="k">Más barato hoy</div><div class="v">__ACTUAL__</div>
-    <div class="d">__ACT_AERO__</div></div>
-  <div class="tile"><div class="k">Directo más barato</div><div class="v">__DIRECTO__</div>
-    <div class="d">__DIR_AERO__</div></div>
-  <div class="tile"><div class="k">Mínimo registrado</div><div class="v">__MINIMO__</div>
-    <div class="d">__MIN_FECHA__</div></div>
+  <div class="tile"><div class="k">Directo más barato hoy</div><div class="v">__DIRECTO__</div>
+    <div class="d">__DIR_LOGO__ __DIR_AERO__</div></div>
+  <div class="tile"><div class="k">Mínimo directo registrado</div><div class="v">__MIN_DIR__</div>
+    <div class="d">__MIN_DIR_FECHA__</div></div>
+  <div class="tile"><div class="k">Duración del directo</div><div class="v chico">__DIR_DUR__</div>
+    <div class="d">sin escalas, tramo de ida</div></div>
   <div class="tile"><div class="k">Rango típico según Google</div>
     <div class="v chico">__TIPICO__</div>
-    <div class="d">para esta ruta y fechas</div></div>
+    <div class="d">incluye vuelos con escalas</div></div>
 </div>
 
 <div class="card"><h2>Fluctuación del precio</h2>
   <p class="nota">Viaje redondo completo; pasa el cursor sobre la línea para ver cada lectura.</p>
   <div class="legend">
-    <span><span class="sw" style="background:var(--sky)"></span>Más barato (con o sin escalas)</span>
     <span><span class="sw" style="background:var(--coral)"></span>Directo más barato</span>
+    <span><span class="sw" style="background:var(--sky);opacity:.55"></span>Más barato en general (referencia)</span>
   </div>
   <div id="chartwrap"><svg id="chart" class="grafica" viewBox="0 0 860 300"></svg><div id="tip"></div></div>
 </div>
@@ -455,7 +479,7 @@ HTML_TEMPLATE = """<!doctype html>
 <div class="card"><h2>Historial de lecturas</h2>
   <p class="nota">Las filas «Google (histórico)» son el historial de 61 días que publica Google Flights.</p>
   <div style="overflow-x:auto"><table>
-    <thead><tr><th>Fecha de consulta</th><th class="num">Más barato</th><th>Aerolínea</th><th class="num">Directo</th><th>Aerolínea</th></tr></thead>
+    <thead><tr><th>Fecha de consulta</th><th class="num">Directo</th><th>Aerolínea</th><th class="num">Más barato</th><th>Aerolínea</th></tr></thead>
     <tbody>__TABLA__</tbody>
   </table></div>
 </div>
@@ -505,21 +529,23 @@ function draw(){
     });
     return s;
   }
-  g+='<path d="'+path(d=>d.p)+'" fill="none" stroke="'+css('--sky')+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
-  g+='<path d="'+path(d=>d.pd)+'" fill="none" stroke="'+css('--coral')+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+  g+='<path d="'+path(d=>d.p)+'" fill="none" stroke="'+css('--sky')+'" stroke-opacity=".55" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>';
+  g+='<path d="'+path(d=>d.pd)+'" fill="none" stroke="'+css('--coral')+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
   const pts=[];
   const dense = D.length>40;
   D.forEach((d,i)=>{
     const cx=X(i);
-    pts.push({cx,d,cy:Y(d.p)});
+    pts.push({cx,d,cy:Y(d.pd!=null?d.pd:d.p)});
     if(!dense||i===D.length-1){
-      g+='<circle cx="'+cx+'" cy="'+Y(d.p)+'" r="3.5" fill="'+css('--sky')+'" stroke="'+css('--card')+'" stroke-width="2"/>';
-      if(d.pd!=null) g+='<circle cx="'+cx+'" cy="'+Y(d.pd)+'" r="3.5" fill="'+css('--coral')+'" stroke="'+css('--card')+'" stroke-width="2"/>';
+      g+='<circle cx="'+cx+'" cy="'+Y(d.p)+'" r="3" fill="'+css('--sky')+'" fill-opacity=".55" stroke="'+css('--card')+'" stroke-width="2"/>';
+      if(d.pd!=null) g+='<circle cx="'+cx+'" cy="'+Y(d.pd)+'" r="4" fill="'+css('--coral')+'" stroke="'+css('--card')+'" stroke-width="2"/>';
     }
   });
-  const ps=D.map(d=>d.p);
-  const minP=Math.min(...ps), iMin=ps.indexOf(minP);
-  g+='<text x="'+X(iMin)+'" y="'+(Y(minP)+20)+'" text-anchor="middle" fill="'+css('--ink2')+'" font-size="11" font-weight="600" font-family="IBM Plex Mono,monospace">'+fmt(minP)+'</text>';
+  let minPd=Infinity,iMinPd=-1;
+  D.forEach((d,i)=>{if(d.pd!=null&&d.pd<minPd){minPd=d.pd;iMinPd=i}});
+  if(iMinPd>=0){
+    g+='<text x="'+X(iMinPd)+'" y="'+(Y(minPd)+22)+'" text-anchor="middle" fill="'+css('--coral-ink')+'" font-size="11" font-weight="600" font-family="IBM Plex Mono,monospace">'+fmt(minPd)+'</text>';
+  }
   g+='<rect x="'+m.l+'" y="'+m.t+'" width="'+(W-m.l-m.r)+'" height="'+(H-m.t-m.b)+'" fill="transparent"/>';
   svg.innerHTML=g;
   return pts;
@@ -532,8 +558,9 @@ svg.addEventListener('mousemove',ev=>{
   let best=PTS[0];
   for(const p of PTS) if(Math.abs(p.cx-x)<Math.abs(best.cx-x)) best=p;
   const d=best.d;
-  let htm='<div class="tt">'+d.t+'</div><div class="tp">'+fmt(d.p)+' <span class="tt">más barato'+(d.a?' · '+d.a:'')+'</span></div>';
+  let htm='<div class="tt">'+d.t+'</div>';
   if(d.pd!=null) htm+='<div class="tp">'+fmt(d.pd)+' <span class="tt">directo'+(d.ad?' · '+d.ad:'')+'</span></div>';
+  htm+='<div class="tp">'+fmt(d.p)+' <span class="tt">general'+(d.a?' · '+d.a:'')+'</span></div>';
   tip.innerHTML=htm;
   tip.style.display='block';
   const wrap=document.getElementById('chartwrap').getBoundingClientRect();
@@ -577,6 +604,8 @@ def main():
         "duracion_min": mejor["duracion_min"],
         "precio_directo": directo["precio"] if directo else "",
         "aerolinea_directo": directo["aerolinea"] if directo else "",
+        "duracion_directo": directo["duracion_min"] if directo else "",
+        "logo_directo": directo["logo"] if directo else "",
         "nivel_precio": insights.get("price_level", ""),
         "tipico_min": rango[0],
         "tipico_max": rango[1],
@@ -584,6 +613,9 @@ def main():
 
     historial_previo = leer_historial()
     minimo_previo = min((float(r["precio"]) for r in historial_previo), default=None)
+    minimo_previo_dir = min(
+        (float(r["precio_directo"]) for r in historial_previo
+         if r.get("precio_directo")), default=None)
 
     guardar_csv(fila)
     historial = leer_historial()
@@ -601,30 +633,36 @@ def main():
         else:
             print(f"Google lo califica como: {nivel}")
 
+    # Las alertas se basan en el vuelo DIRECTO (lo que realmente se sugiere comprar)
     eventos = []
     if minimo_previo is not None and mejor["precio"] < minimo_previo:
-        print(f"*** NUEVO MINIMO: bajo de ${minimo_previo:,.0f} a ${mejor['precio']:,} ***")
-        eventos.append(f"📉 <b>Nuevo mínimo</b>: ${mejor['precio']:,} {moneda} "
-                       f"(antes ${minimo_previo:,.0f})")
+        print(f"*** NUEVO MINIMO (general): ${mejor['precio']:,} ***")
+    if (directo and minimo_previo_dir is not None
+            and directo["precio"] < minimo_previo_dir):
+        print(f"*** NUEVO MINIMO DIRECTO: bajo de ${minimo_previo_dir:,.0f} "
+              f"a ${directo['precio']:,} ***")
+        eventos.append(f"📉 <b>Nuevo mínimo en vuelo directo</b>: "
+                       f"${directo['precio']:,} {moneda} "
+                       f"(antes ${minimo_previo_dir:,.0f})")
     alerta = cfg.get("precio_alerta")
-    if alerta and mejor["precio"] <= alerta:
-        print(f"*** ALERTA: precio <= ${alerta:,} — considera comprar ya ***")
-        eventos.append(f"🎯 Precio en o bajo tu alerta de ${alerta:,} {moneda}")
+    if alerta and directo and directo["precio"] <= alerta:
+        print(f"*** ALERTA: directo <= ${alerta:,} — considera comprar ya ***")
+        eventos.append(f"🎯 El directo está en o bajo tu alerta de ${alerta:,} {moneda}")
     nivel_previo = ((historial_previo[-1].get("nivel_precio") or "").lower()
                     if historial_previo else "")
     if insights.get("price_level") == "low" and nivel_previo != "low":
         eventos.append("🟢 Google ahora califica el precio como <b>BAJO</b> "
                        "— suele ser buen momento de comprar")
 
-    if eventos:
+    if eventos and directo:
         cuerpo = "\n".join(eventos)
-        detalle = (f"Más barato: ${mejor['precio']:,} {moneda} ({mejor['aerolinea']})")
-        if directo:
-            detalle += f"\nDirecto: ${directo['precio']:,} {moneda} ({directo['aerolinea']})"
+        detalle = (f"✅ Directo: ${directo['precio']:,} {moneda} "
+                   f"({directo['aerolinea']})")
+        detalle += f"\nCon escalas: ${mejor['precio']:,} {moneda} ({mejor['aerolinea']})"
         enlace = cfg.get("url_reporte", "")
         pie = f"\n📊 {enlace}" if enlace else ""
         notificar_telegram(
-            f"✈️ <b>GDL → Houston</b> (26 oct – 18 nov)\n{cuerpo}\n\n{detalle}{pie}")
+            f"✈️ <b>GDL → Houston directo</b> (26 oct – 18 nov)\n{cuerpo}\n\n{detalle}{pie}")
 
     print(f"Reporte actualizado: {REPORT_PATH}")
 
