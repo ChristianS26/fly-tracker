@@ -247,6 +247,14 @@ def generar_reporte(historial, cfg):
     html = html.replace("__TABLA__", filas_tabla)
     html = html.replace("__ACTUALIZADO__", ultimo["t"] if ultimo else "sin datos")
 
+    ida = datetime.strptime(cfg["fecha_ida"], "%Y-%m-%d").date()
+    dias = max(0, (ida - datetime.now().date()).days)
+    alerta = cfg.get("precio_alerta")
+    html = html.replace("__DIAS__", str(dias))
+    html = html.replace("__TIP_MIN__", str(float(tip_min)) if tip_min else "null")
+    html = html.replace("__TIP_MAX__", str(float(tip_max)) if tip_max else "null")
+    html = html.replace("__ALERTA__", str(alerta) if alerta else "null")
+
     for ruta in (REPORT_PATH, INDEX_PATH):
         with open(ruta, "w", encoding="utf-8") as f:
             f.write(html)
@@ -369,6 +377,14 @@ HTML_TEMPLATE = """<!doctype html>
     color:var(--ink2);margin-bottom:10px;flex-wrap:wrap}
   .legend .sw{display:inline-block;width:16px;height:3px;border-radius:2px;
     vertical-align:middle;margin-right:7px}
+  .filtros{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .filtros button{font:600 .7rem/1 "IBM Plex Mono",monospace;letter-spacing:.08em;
+    border:1.5px solid var(--line);background:var(--card);color:var(--ink2);
+    border-radius:999px;padding:6px 13px;cursor:pointer;transition:border-color .15s}
+  .filtros button:hover{border-color:var(--axis)}
+  .filtros button.act{border-color:var(--ink);color:var(--ink)}
+  .filtros .dias{margin-left:auto;font:500 .72rem/1 "IBM Plex Mono",monospace;
+    color:var(--ink2);letter-spacing:.06em}
   #chartwrap{position:relative}
   svg.grafica{display:block;width:100%;height:auto}
   #tip{position:absolute;pointer-events:none;display:none;
@@ -468,10 +484,17 @@ HTML_TEMPLATE = """<!doctype html>
 </div>
 
 <div class="card"><h2>Fluctuación del precio</h2>
-  <p class="nota">Viaje redondo completo; pasa el cursor sobre la línea para ver cada lectura.</p>
+  <p class="nota">Viaje redondo completo; pasa el cursor o toca la gráfica para ver cada lectura.
+  La franja azul es el rango típico de Google y la línea verde tu precio de alerta.</p>
   <div class="legend">
     <span><span class="sw" style="background:var(--coral)"></span>Directo más barato</span>
     <span><span class="sw" style="background:var(--sky);opacity:.55"></span>Más barato en general (referencia)</span>
+  </div>
+  <div class="filtros">
+    <button data-r="todo" class="act">Todo</button>
+    <button data-r="30">30 días</button>
+    <button data-r="7">7 días</button>
+    <span class="dias">🛫 faltan __DIAS__ días para la salida</span>
   </div>
   <div id="chartwrap"><svg id="chart" class="grafica" viewBox="0 0 860 300"></svg><div id="tip"></div></div>
 </div>
@@ -489,23 +512,41 @@ HTML_TEMPLATE = """<!doctype html>
 
 <script>
 const D = __DATOS__;
+const TIPICO = [__TIP_MIN__, __TIP_MAX__];
+const ALERTA = __ALERTA__;
 const svg = document.getElementById('chart'), tip = document.getElementById('tip');
-const W=860,H=300,m={t:16,r:16,b:34,l:68};
+const W=860,H=300,m={t:18,r:16,b:34,l:68};
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 function fmt(n){return '$'+Math.round(n).toLocaleString('es-MX')}
+function fecha(t){const p=t.slice(0,10).split('-');return Date.UTC(+p[0],+p[1]-1,+p[2])}
+let rango='todo', PTS=[];
+function filtrados(){
+  if(rango==='todo'||!D.length) return D;
+  const fin=fecha(D[D.length-1].t), ini=fin-rango*86400000;
+  return D.filter(d=>fecha(d.t)>=ini);
+}
 function draw(){
-  svg.innerHTML='';
-  if(D.length===0){
-    svg.innerHTML='<text x="430" y="150" text-anchor="middle" fill="'+css('--muted')+'" font-size="14">Aún no hay lecturas — corre tracker.py</text>';
-    return [];
+  const F=filtrados();
+  svg.innerHTML=''; PTS=[];
+  if(F.length===0){
+    svg.innerHTML='<text x="430" y="150" text-anchor="middle" fill="'+css('--muted')+'" font-size="14">Sin lecturas en este rango — corre tracker.py</text>';
+    return;
   }
-  const vals=D.map(d=>d.p).concat(D.filter(d=>d.pd!=null).map(d=>d.pd));
+  const vals=F.map(d=>d.p).concat(F.filter(d=>d.pd!=null).map(d=>d.pd));
+  if(ALERTA!=null) vals.push(ALERTA);
   let lo=Math.min(...vals), hi=Math.max(...vals);
   if(lo===hi){lo-=lo*0.05||100; hi+=hi*0.05||100}
   const pad=(hi-lo)*0.12; lo-=pad; hi+=pad;
-  const X=i=>D.length<2 ? (m.l+(W-m.l-m.r)/2) : m.l+(W-m.l-m.r)*i/(D.length-1);
+  const X=i=>F.length<2 ? (m.l+(W-m.l-m.r)/2) : m.l+(W-m.l-m.r)*i/(F.length-1);
   const Y=p=>m.t+(H-m.t-m.b)*(1-(p-lo)/(hi-lo));
   let g='';
+  if(TIPICO[0]!=null&&TIPICO[1]!=null){
+    const yT=Math.max(m.t,Y(TIPICO[1])), yB=Math.min(H-m.b,Y(TIPICO[0]));
+    if(yB>yT){
+      g+='<rect x="'+m.l+'" y="'+yT+'" width="'+(W-m.l-m.r)+'" height="'+(yB-yT)+'" fill="'+css('--sky')+'" fill-opacity=".07"/>';
+      g+='<text x="'+(W-m.r-6)+'" y="'+(yT+13)+'" text-anchor="end" fill="'+css('--muted')+'" font-size="10" font-family="IBM Plex Mono,monospace">rango típico Google</text>';
+    }
+  }
   const ticks=4;
   for(let k=0;k<=ticks;k++){
     const v=lo+(hi-lo)*k/ticks, y=Y(v);
@@ -513,15 +554,19 @@ function draw(){
     g+='<text x="'+(m.l-10)+'" y="'+(y+4)+'" text-anchor="end" fill="'+css('--muted')+'" font-size="11" font-family="IBM Plex Mono,monospace">'+fmt(v)+'</text>';
   }
   g+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+(H-m.b)+'" y2="'+(H-m.b)+'" stroke="'+css('--axis')+'" stroke-width="1"/>';
-  const step=Math.max(1,Math.ceil(D.length/6));
-  D.forEach((d,i)=>{
-    if(i%step===0||i===D.length-1){
+  const step=Math.max(1,Math.ceil(F.length/6));
+  F.forEach((d,i)=>{
+    if(i%step===0||i===F.length-1){
       g+='<text x="'+X(i)+'" y="'+(H-m.b+18)+'" text-anchor="middle" fill="'+css('--muted')+'" font-size="11" font-family="IBM Plex Mono,monospace">'+d.t.slice(5,10)+'</text>';
     }
   });
+  if(ALERTA!=null&&ALERTA>lo&&ALERTA<hi){
+    g+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+Y(ALERTA)+'" y2="'+Y(ALERTA)+'" stroke="'+css('--bueno')+'" stroke-width="1.5" stroke-dasharray="6 5"/>';
+    g+='<text x="'+(m.l+6)+'" y="'+(Y(ALERTA)-6)+'" fill="'+css('--bueno')+'" font-size="10" font-weight="600" font-family="IBM Plex Mono,monospace">alerta '+fmt(ALERTA)+'</text>';
+  }
   function path(get){
     let s='',pen=false;
-    D.forEach((d,i)=>{
+    F.forEach((d,i)=>{
       const v=get(d);
       if(v==null){pen=false;return}
       s+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' ';
@@ -531,32 +576,43 @@ function draw(){
   }
   g+='<path d="'+path(d=>d.p)+'" fill="none" stroke="'+css('--sky')+'" stroke-opacity=".55" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>';
   g+='<path d="'+path(d=>d.pd)+'" fill="none" stroke="'+css('--coral')+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
-  const pts=[];
-  const dense = D.length>40;
-  D.forEach((d,i)=>{
+  const dense = F.length>40;
+  F.forEach((d,i)=>{
     const cx=X(i);
-    pts.push({cx,d,cy:Y(d.pd!=null?d.pd:d.p)});
-    if(!dense||i===D.length-1){
+    PTS.push({cx,d,cy:Y(d.pd!=null?d.pd:d.p)});
+    if(!dense||i===F.length-1){
       g+='<circle cx="'+cx+'" cy="'+Y(d.p)+'" r="3" fill="'+css('--sky')+'" fill-opacity=".55" stroke="'+css('--card')+'" stroke-width="2"/>';
       if(d.pd!=null) g+='<circle cx="'+cx+'" cy="'+Y(d.pd)+'" r="4" fill="'+css('--coral')+'" stroke="'+css('--card')+'" stroke-width="2"/>';
     }
   });
   let minPd=Infinity,iMinPd=-1;
-  D.forEach((d,i)=>{if(d.pd!=null&&d.pd<minPd){minPd=d.pd;iMinPd=i}});
+  F.forEach((d,i)=>{if(d.pd!=null&&d.pd<minPd){minPd=d.pd;iMinPd=i}});
   if(iMinPd>=0){
     g+='<text x="'+X(iMinPd)+'" y="'+(Y(minPd)+22)+'" text-anchor="middle" fill="'+css('--coral-ink')+'" font-size="11" font-weight="600" font-family="IBM Plex Mono,monospace">'+fmt(minPd)+'</text>';
   }
+  g+='<line id="cross" x1="0" x2="0" y1="'+m.t+'" y2="'+(H-m.b)+'" stroke="'+css('--axis')+'" stroke-width="1" visibility="hidden"/>';
   g+='<rect x="'+m.l+'" y="'+m.t+'" width="'+(W-m.l-m.r)+'" height="'+(H-m.t-m.b)+'" fill="transparent"/>';
   svg.innerHTML=g;
-  return pts;
 }
-const PTS=draw();
-svg.addEventListener('mousemove',ev=>{
+draw();
+document.querySelectorAll('.filtros button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.filtros button').forEach(x=>x.classList.remove('act'));
+    b.classList.add('act');
+    rango=b.dataset.r==='todo'?'todo':+b.dataset.r;
+    tip.style.display='none';
+    draw();
+  });
+});
+function mover(clientX){
   if(!PTS.length) return;
   const r=svg.getBoundingClientRect(), sx=W/r.width;
-  const x=(ev.clientX-r.left)*sx;
+  const x=(clientX-r.left)*sx;
   let best=PTS[0];
   for(const p of PTS) if(Math.abs(p.cx-x)<Math.abs(best.cx-x)) best=p;
+  const cross=document.getElementById('cross');
+  if(cross){cross.setAttribute('x1',best.cx);cross.setAttribute('x2',best.cx);
+    cross.setAttribute('visibility','visible');}
   const d=best.d;
   let htm='<div class="tt">'+d.t+'</div>';
   if(d.pd!=null) htm+='<div class="tp">'+fmt(d.pd)+' <span class="tt">directo'+(d.ad?' · '+d.ad:'')+'</span></div>';
@@ -567,8 +623,12 @@ svg.addEventListener('mousemove',ev=>{
   let tx=best.cx/sx+12, ty=best.cy/sx-10;
   tip.style.left=Math.min(tx,wrap.width-tip.offsetWidth-4)+'px';
   tip.style.top=Math.max(0,ty)+'px';
-});
-svg.addEventListener('mouseleave',()=>{tip.style.display='none'});
+}
+svg.addEventListener('mousemove',ev=>mover(ev.clientX));
+svg.addEventListener('touchstart',ev=>mover(ev.touches[0].clientX),{passive:true});
+svg.addEventListener('touchmove',ev=>mover(ev.touches[0].clientX),{passive:true});
+svg.addEventListener('mouseleave',()=>{tip.style.display='none';
+  const c=document.getElementById('cross'); if(c)c.setAttribute('visibility','hidden')});
 </script>
 </body></html>
 """
