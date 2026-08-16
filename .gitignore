@@ -2,5 +2,6 @@
 .telegram_token
 .telegram_chat
 .amadeus_creds
+.duffel_token
 data/
 __pycache__/
