@@ -1,5 +1,6 @@
 .serpapi_key
 .telegram_token
 .telegram_chat
+.amadeus_creds
 data/
 __pycache__/
