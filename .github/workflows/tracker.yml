@@ -20,6 +20,8 @@ jobs:
     env:
       TZ: America/Mexico_City
       SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
     steps:
       - uses: actions/checkout@v4
 

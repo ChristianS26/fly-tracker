@@ -22,6 +22,8 @@ from datetime import datetime
 BASE = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(BASE, "config.json")
 KEY_PATH = os.path.join(BASE, ".serpapi_key")
+TG_TOKEN_PATH = os.path.join(BASE, ".telegram_token")
+TG_CHAT_PATH = os.path.join(BASE, ".telegram_chat")
 CSV_PATH = os.path.join(BASE, "historial.csv")
 DATA_DIR = os.path.join(BASE, "data")
 REPORT_PATH = os.path.join(BASE, "reporte.html")
@@ -127,6 +129,36 @@ def guardar_csv(fila):
         w.writerow(fila)
 
 
+def _leer_secreto(env_var, ruta):
+    valor = os.environ.get(env_var, "").strip()
+    if not valor and os.path.exists(ruta):
+        with open(ruta, encoding="utf-8") as f:
+            valor = f.read().strip()
+    return valor
+
+
+def notificar_telegram(texto):
+    """Envia un mensaje al grupo de Telegram; si no hay bot configurado, no hace nada."""
+    token = _leer_secreto("TELEGRAM_BOT_TOKEN", TG_TOKEN_PATH)
+    chat = _leer_secreto("TELEGRAM_CHAT_ID", TG_CHAT_PATH)
+    if not token or not chat:
+        return False
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    datos = urllib.parse.urlencode({
+        "chat_id": chat, "text": texto,
+        "parse_mode": "HTML", "disable_web_page_preview": "true",
+    }).encode()
+    try:
+        with urllib.request.urlopen(
+                urllib.request.Request(url, data=datos), timeout=30):
+            pass
+        print("Alerta enviada al grupo de Telegram.")
+        return True
+    except Exception as e:
+        print("Aviso: fallo el envio a Telegram:", e)
+        return False
+
+
 def leer_historial():
     if not os.path.exists(CSV_PATH):
         return []
@@ -207,23 +239,25 @@ HTML_TEMPLATE = """<!doctype html>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{color-scheme:light;
-    --paper:#f3ecdd; --card:#fffdf8; --card2:#faf5e9;
-    --ink:#1c2b47; --ink2:#4d5a74; --muted:#8b8574;
-    --line:#e0d6bf; --grid:#ece4d2; --axis:#cfc5ab;
+    --paper:#f3f5f9; --card:#ffffff; --card2:#f6f8fb;
+    --ink:#16243d; --ink2:#46536b; --muted:#7b8494;
+    --line:#e2e6ee; --grid:#eef1f6; --axis:#ccd3de;
     --sky:#2a78d6; --coral:#eb6834; --coral-ink:#b8431a;
     --bueno:#0a7d0a;
-    --sombra:0 1px 2px rgba(28,43,71,.06),0 8px 24px -12px rgba(28,43,71,.18)}
+    --sombra:0 1px 2px rgba(22,36,61,.05),0 8px 24px -12px rgba(22,36,61,.16)}
   *{box-sizing:border-box;margin:0}
   body{background:var(--paper);color:var(--ink);
-    background-image:radial-gradient(circle at 1px 1px, rgba(28,43,71,.045) 1px, transparent 0);
+    background-image:radial-gradient(circle at 1px 1px, rgba(22,36,61,.05) 1px, transparent 0);
     background-size:22px 22px;
     font:15px/1.55 "Archivo",sans-serif;
     padding:32px 20px 48px;max-width:940px;margin:0 auto}
-  .brand{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;
-    animation:rise .5s ease both}
+  .brand{margin-bottom:16px;animation:rise .5s ease both}
+  .brand .fila{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
   .brand h1{font:italic 500 1.35rem/1 "Fraunces",serif;letter-spacing:.01em}
-  .brand span{font:500 .68rem/1 "IBM Plex Mono",monospace;color:var(--muted);
+  .brand .tag-brand{font:500 .68rem/1 "IBM Plex Mono",monospace;color:var(--muted);
     letter-spacing:.14em;text-transform:uppercase}
+  .brand .tagline{font:400 .92rem/1.5 "Archivo",sans-serif;color:var(--ink2);
+    margin-top:6px;max-width:56ch}
 
   /* ---------- pase de abordar ---------- */
   .pass{display:flex;background:var(--card);border:1px solid var(--line);
@@ -331,12 +365,39 @@ HTML_TEMPLATE = """<!doctype html>
   .foot{color:var(--muted);font-size:.76rem;margin-top:6px;
     border-top:1px dashed var(--line);padding-top:12px}
   @keyframes rise{from{opacity:0;transform:translateY(14px)}}
-  @media (max-width:640px){.pass-stub{display:none}}
+  @media (max-width:640px){
+    body{padding:20px 12px 36px}
+    .pass-main{padding:14px 16px 16px}
+    .pass-top{font-size:.56rem;letter-spacing:.1em;padding-bottom:10px}
+    .route{gap:8px;padding:14px 0 6px}
+    .apt .code{font-size:clamp(1.7rem,9vw,2.4rem)}
+    .apt .city{font-size:.6rem}
+    .arc{min-width:60px;height:44px}
+    .arc .avion{font-size:.95rem}
+    .fields{grid-template-columns:1fr 1fr;gap:11px 12px;padding-top:12px}
+    .fields span{font-size:.56rem}
+    .fields b{font-size:.85rem}
+    .chip{font-size:.68rem;padding:4px 10px}
+    .pass-stub{width:64px;padding:12px 0}
+    .barcode{width:34px;height:78px}
+    .stub-txt{font-size:.52rem;letter-spacing:.14em}
+    .tiles{grid-template-columns:1fr 1fr;gap:10px}
+    .tile{padding:12px 13px 11px}
+    .tile .v{font-size:1.3rem}
+    .tile .v.chico{font-size:.98rem}
+    .card{padding:16px 14px}
+    .card h2{font-size:1.02rem}
+    .brand .tagline{font-size:.88rem}}
   @media (prefers-reduced-motion:reduce){
     *{animation:none!important}}
 </style></head><body>
 
-<div class="brand"><h1>Vigía de Vuelo</h1><span>rastreador de tarifas</span></div>
+<div class="brand">
+  <div class="fila"><h1>Vigía de Vuelo</h1><span class="tag-brand">rastreador de tarifas</span></div>
+  <p class="tagline">Seguimiento automático del precio del vuelo redondo
+  <b>Guadalajara → Houston</b> (26 oct – 18 nov 2026). Se consulta Google Flights
+  dos veces al día para detectar el mejor momento de compra.</p>
+</div>
 
 <header class="pass">
   <div class="pass-main">
@@ -345,10 +406,10 @@ HTML_TEMPLATE = """<!doctype html>
       <div class="apt"><div class="code">__ORI_CODE__</div><div class="city">__ORI_CITY__</div></div>
       <div class="arc">
         <svg viewBox="0 0 300 64" aria-hidden="true">
-          <path d="M8 52 Q150 -18 292 52" fill="none" stroke="#cfc5ab"
+          <path d="M8 52 Q150 -18 292 52" fill="none" stroke="#ccd3de"
             stroke-width="2" stroke-dasharray="1 7" stroke-linecap="round"/>
-          <circle cx="8" cy="52" r="3.5" fill="#1c2b47"/>
-          <circle cx="292" cy="52" r="3.5" fill="none" stroke="#1c2b47" stroke-width="2"/>
+          <circle cx="8" cy="52" r="3.5" fill="#16243d"/>
+          <circle cx="292" cy="52" r="3.5" fill="none" stroke="#16243d" stroke-width="2"/>
         </svg>
         <span class="avion">✈</span>
       </div>
@@ -540,11 +601,30 @@ def main():
         else:
             print(f"Google lo califica como: {nivel}")
 
+    eventos = []
     if minimo_previo is not None and mejor["precio"] < minimo_previo:
         print(f"*** NUEVO MINIMO: bajo de ${minimo_previo:,.0f} a ${mejor['precio']:,} ***")
+        eventos.append(f"📉 <b>Nuevo mínimo</b>: ${mejor['precio']:,} {moneda} "
+                       f"(antes ${minimo_previo:,.0f})")
     alerta = cfg.get("precio_alerta")
     if alerta and mejor["precio"] <= alerta:
         print(f"*** ALERTA: precio <= ${alerta:,} — considera comprar ya ***")
+        eventos.append(f"🎯 Precio en o bajo tu alerta de ${alerta:,} {moneda}")
+    nivel_previo = ((historial_previo[-1].get("nivel_precio") or "").lower()
+                    if historial_previo else "")
+    if insights.get("price_level") == "low" and nivel_previo != "low":
+        eventos.append("🟢 Google ahora califica el precio como <b>BAJO</b> "
+                       "— suele ser buen momento de comprar")
+
+    if eventos:
+        cuerpo = "\n".join(eventos)
+        detalle = (f"Más barato: ${mejor['precio']:,} {moneda} ({mejor['aerolinea']})")
+        if directo:
+            detalle += f"\nDirecto: ${directo['precio']:,} {moneda} ({directo['aerolinea']})"
+        enlace = cfg.get("url_reporte", "")
+        pie = f"\n📊 {enlace}" if enlace else ""
+        notificar_telegram(
+            f"✈️ <b>GDL → Houston</b> (26 oct – 18 nov)\n{cuerpo}\n\n{detalle}{pie}")
 
     print(f"Reporte actualizado: {REPORT_PATH}")
 

@@ -4,6 +4,7 @@
   "fecha_ida": "2026-10-26",
   "fecha_regreso": "2026-11-18",
   "moneda": "MXN",
+  "url_reporte": "https://christians26.github.io/fly-tracker/",
   "adultos": 1,
   "precio_alerta": null
 }
