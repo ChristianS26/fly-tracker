@@ -38,9 +38,10 @@ def cargar_config():
     with open(CONFIG_PATH, encoding="utf-8") as f:
         cfg = json.load(f)
     key = os.environ.get("SERPAPI_KEY") or cfg.get("serpapi_key", "")
-    if not key and os.path.exists(KEY_PATH):
+    if not key.strip() and os.path.exists(KEY_PATH):
         with open(KEY_PATH, encoding="utf-8") as f:
-            key = f.read().strip()
+            key = f.read()
+    key = key.strip()
     if not key or "PON_TU_API_KEY" in key:
         print("ERROR: falta la API key de SerpAPI.")
         print("1. Crea una cuenta gratis en https://serpapi.com/users/sign_up")
