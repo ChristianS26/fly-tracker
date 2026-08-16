@@ -32,7 +32,7 @@ INDEX_PATH = os.path.join(BASE, "index.html")
 CSV_FIELDS = [
     "fecha_hora", "precio", "aerolinea", "escalas", "duracion_min",
     "precio_directo", "aerolinea_directo", "duracion_directo", "logo_directo",
-    "nivel_precio", "tipico_min", "tipico_max",
+    "logo_general", "nivel_precio", "tipico_min", "tipico_max",
 ]
 
 MESES = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN",
@@ -200,17 +200,17 @@ def generar_reporte(historial, cfg):
     def celda_precio(v):
         return f"${float(v):,.0f}" if v else "—"
 
-    def celda_aero_dir(r):
-        logo = r.get("logo_directo") or ""
+    def celda_aero(r, campo_logo, campo_aero):
+        logo = r.get(campo_logo) or ""
         img = f"<img class='logo' src='{logo}' alt='' loading='lazy'>" if logo else ""
-        return img + (r.get("aerolinea_directo") or "")
+        return img + (r.get(campo_aero) or "")
 
     filas_tabla = "\n".join(
         f"<tr><td>{r['fecha_hora']}</td>"
         f"<td class='num'>{celda_precio(r.get('precio_directo'))}</td>"
-        f"<td>{celda_aero_dir(r)}</td>"
+        f"<td>{celda_aero(r, 'logo_directo', 'aerolinea_directo')}</td>"
         f"<td class='num'>${float(r['precio']):,.0f}</td>"
-        f"<td>{r.get('aerolinea','')}</td></tr>"
+        f"<td>{celda_aero(r, 'logo_general', 'aerolinea')}</td></tr>"
         for r in reversed(historial)
     )
 
@@ -606,6 +606,7 @@ def main():
         "aerolinea_directo": directo["aerolinea"] if directo else "",
         "duracion_directo": directo["duracion_min"] if directo else "",
         "logo_directo": directo["logo"] if directo else "",
+        "logo_general": mejor["logo"],
         "nivel_precio": insights.get("price_level", ""),
         "tipico_min": rango[0],
         "tipico_max": rango[1],
