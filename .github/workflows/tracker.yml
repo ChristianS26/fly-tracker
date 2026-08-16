@@ -1,0 +1,39 @@
+name: Rastrear precio de vuelo
+
+on:
+  schedule:
+    # UTC: 15:00 y 03:00 = 9:00 y 21:00 hora de Guadalajara (UTC-6)
+    - cron: "0 15 * * *"
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tracker
+  cancel-in-progress: false
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    env:
+      TZ: America/Mexico_City
+      SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Consultar precios y regenerar reporte
+        run: python tracker.py
+
+      - name: Publicar cambios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add historial.csv reporte.html index.html
+          git diff --cached --quiet || git commit -m "Lectura de precios $(date '+%Y-%m-%d %H:%M')"
+          git push

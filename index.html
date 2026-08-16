@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vuelo GDL–Houston</title>
+<style>
+  :root{color-scheme:light dark;
+    --surface:#fcfcfb;--page:#f9f9f7;--ink:#0b0b0b;--ink2:#52514e;
+    --muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;
+    --serie1:#2a78d6;--serie2:#eb6834;
+    --border:rgba(11,11,11,.10)}
+  @media (prefers-color-scheme:dark){:root{
+    --surface:#1a1a19;--page:#0d0d0d;--ink:#ffffff;--ink2:#c3c2b7;
+    --muted:#898781;--grid:#2c2c2a;--axis:#383835;
+    --serie1:#3987e5;--serie2:#d95926;
+    --border:rgba(255,255,255,.10)}}
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--page);color:var(--ink);
+    font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;
+    padding:24px;max-width:880px;margin:0 auto}
+  h1{font-size:1.25rem;font-weight:650}
+  .sub{color:var(--ink2);margin-bottom:20px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:12px;margin-bottom:20px}
+  .tile{background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;padding:14px 16px}
+  .tile .k{font-size:.78rem;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.04em}
+  .tile .v{font-size:1.55rem;font-weight:650;margin-top:2px}
+  .tile .d{font-size:.78rem;color:var(--ink2)}
+  .card{background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;padding:18px;margin-bottom:20px}
+  .card h2{font-size:.95rem;font-weight:600;margin-bottom:4px}
+  .legend{display:flex;gap:18px;font-size:.8rem;color:var(--ink2);
+    margin-bottom:8px;flex-wrap:wrap}
+  .legend .sw{display:inline-block;width:14px;height:3px;border-radius:2px;
+    vertical-align:middle;margin-right:6px}
+  #chartwrap{position:relative}
+  svg{display:block;width:100%;height:auto}
+  #tip{position:absolute;pointer-events:none;display:none;
+    background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    padding:6px 10px;font-size:.8rem;box-shadow:0 2px 8px rgba(0,0,0,.12);
+    white-space:nowrap;z-index:2}
+  #tip .tp{font-weight:650}
+  #tip .tt{color:var(--ink2)}
+  table{width:100%;border-collapse:collapse;font-size:.85rem}
+  th{text-align:left;color:var(--muted);font-weight:500;
+    border-bottom:1px solid var(--grid);padding:6px 8px}
+  td{padding:6px 8px;border-bottom:1px solid var(--grid)}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  th.num{text-align:right}
+  .foot{color:var(--muted);font-size:.78rem;margin-top:8px}
+</style></head><body>
+<h1>Vuelo GDL → Houston (IAH,HOU)</h1>
+<p class="sub">ida 2026-10-26 · regreso 2026-11-18 · precios en MXN (viaje redondo)</p>
+
+<div class="tiles">
+  <div class="tile"><div class="k">Más barato hoy</div><div class="v">$5,171</div></div>
+  <div class="tile"><div class="k">Directo más barato hoy</div><div class="v">$5,537</div>
+    <div class="d">Volaris</div></div>
+  <div class="tile"><div class="k">Mínimo registrado</div><div class="v">$4,721</div>
+    <div class="d">2026-06-16</div></div>
+  <div class="tile"><div class="k">Rango típico (Google)</div><div class="v" style="font-size:1.1rem">$4,150 – $5,100</div></div>
+</div>
+
+<div class="card"><h2>Fluctuación del precio</h2>
+  <div class="legend">
+    <span><span class="sw" style="background:var(--serie1)"></span>Más barato (con o sin escalas)</span>
+    <span><span class="sw" style="background:var(--serie2)"></span>Directo más barato</span>
+  </div>
+  <div id="chartwrap"><svg id="chart" viewBox="0 0 820 300"></svg><div id="tip"></div></div>
+</div>
+
+<div class="card"><h2>Historial de lecturas</h2>
+  <div style="overflow-x:auto"><table>
+    <thead><tr><th>Fecha de consulta</th><th class="num">Más barato</th><th>Aerolínea</th><th class="num">Directo</th><th>Aerolínea</th></tr></thead>
+    <tbody><tr><td>2026-08-15 19:29</td><td class='num'>$5,171</td><td>Viva</td><td class='num'>$5,537</td><td>Volaris</td></tr>
+<tr><td>2026-08-15</td><td class='num'>$5,171</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-08-14</td><td class='num'>$5,170</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-08-13</td><td class='num'>$5,142</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-08-12</td><td class='num'>$5,106</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-08-11</td><td class='num'>$5,106</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-08-10</td><td class='num'>$5,446</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-08-09</td><td class='num'>$5,595</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-08-08</td><td class='num'>$5,597</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-08-07</td><td class='num'>$5,261</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-08-06</td><td class='num'>$5,279</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-08-05</td><td class='num'>$5,278</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-08-04</td><td class='num'>$5,294</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-08-03</td><td class='num'>$5,147</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-08-02</td><td class='num'>$5,131</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-08-01</td><td class='num'>$5,129</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-31</td><td class='num'>$5,126</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-30</td><td class='num'>$5,181</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-29</td><td class='num'>$5,187</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-28</td><td class='num'>$5,407</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-27</td><td class='num'>$5,353</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-26</td><td class='num'>$5,364</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-25</td><td class='num'>$5,207</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-24</td><td class='num'>$5,191</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-23</td><td class='num'>$5,341</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-22</td><td class='num'>$5,341</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-21</td><td class='num'>$5,343</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-20</td><td class='num'>$5,198</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-19</td><td class='num'>$5,211</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-18</td><td class='num'>$5,201</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-17</td><td class='num'>$5,198</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-16</td><td class='num'>$5,242</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-15</td><td class='num'>$5,240</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-14</td><td class='num'>$5,259</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-13</td><td class='num'>$5,201</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-12</td><td class='num'>$5,197</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-11</td><td class='num'>$5,198</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-10</td><td class='num'>$5,205</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-09</td><td class='num'>$5,212</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-08</td><td class='num'>$5,186</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-07</td><td class='num'>$5,186</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-06</td><td class='num'>$5,192</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-05</td><td class='num'>$5,191</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-04</td><td class='num'>$5,185</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-03</td><td class='num'>$5,182</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-02</td><td class='num'>$4,805</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-07-01</td><td class='num'>$4,804</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-30</td><td class='num'>$4,795</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-29</td><td class='num'>$4,801</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-28</td><td class='num'>$4,802</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-27</td><td class='num'>$4,806</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-26</td><td class='num'>$4,804</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-25</td><td class='num'>$4,819</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-24</td><td class='num'>$4,790</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-23</td><td class='num'>$4,768</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-22</td><td class='num'>$4,760</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-21</td><td class='num'>$4,760</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-20</td><td class='num'>$4,757</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-19</td><td class='num'>$4,766</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-18</td><td class='num'>$4,730</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-17</td><td class='num'>$4,722</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr>
+<tr><td>2026-06-16</td><td class='num'>$4,721</td><td>Google (histórico)</td><td class='num'>—</td><td></td></tr></tbody>
+  </table></div>
+</div>
+<p class="foot">Última actualización: 2026-08-15 19:29 · generado por tracker.py ·
+las lecturas "Google (histórico)" vienen del historial de precios de Google Flights</p>
+
+<script>
+const D = [{"t": "2026-06-16", "p": 4721.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-06-17", "p": 4722.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-06-18", "p": 4730.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-06-19", "p": 4766.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-06-20", "p": 4757.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-06-21", "p": 4760.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-06-22", "p": 4760.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-06-23", "p": 4768.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-06-24", "p": 4790.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-06-25", "p": 4819.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-06-26", "p": 4804.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-06-27", "p": 4806.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-06-28", "p": 4802.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-06-29", "p": 4801.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-06-30", "p": 4795.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-01", "p": 4804.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-02", "p": 4805.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-03", "p": 5182.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-04", "p": 5185.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-05", "p": 5191.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-06", "p": 5192.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-07", "p": 5186.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-08", "p": 5186.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-09", "p": 5212.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-10", "p": 5205.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-11", "p": 5198.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-12", "p": 5197.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-13", "p": 5201.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-14", "p": 5259.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-15", "p": 5240.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-16", "p": 5242.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-17", "p": 5198.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-18", "p": 5201.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-19", "p": 5211.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-20", "p": 5198.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-21", "p": 5343.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-22", "p": 5341.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-23", "p": 5341.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-24", "p": 5191.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-25", "p": 5207.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-26", "p": 5364.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-27", "p": 5353.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-28", "p": 5407.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-29", "p": 5187.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-30", "p": 5181.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-07-31", "p": 5126.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-01", "p": 5129.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-02", "p": 5131.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-03", "p": 5147.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-04", "p": 5294.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-05", "p": 5278.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-06", "p": 5279.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-07", "p": 5261.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-08", "p": 5597.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-09", "p": 5595.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-10", "p": 5446.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-11", "p": 5106.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-12", "p": 5106.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-13", "p": 5142.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-14", "p": 5170.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-15", "p": 5171.0, "pd": null, "a": "Google (histórico)", "ad": "", "e": ""}, {"t": "2026-08-15 19:29", "p": 5171.0, "pd": 5537.0, "a": "Viva", "ad": "Volaris", "e": "1"}];
+const svg = document.getElementById('chart'), tip = document.getElementById('tip');
+const W=820,H=300,m={t:16,r:16,b:34,l:64};
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function fmt(n){return '$'+Math.round(n).toLocaleString('es-MX')}
+function draw(){
+  svg.innerHTML='';
+  if(D.length===0){
+    svg.innerHTML='<text x="410" y="150" text-anchor="middle" fill="'+css('--muted')+'" font-size="14">Aún no hay lecturas — corre tracker.py</text>';
+    return [];
+  }
+  const vals=D.map(d=>d.p).concat(D.filter(d=>d.pd!=null).map(d=>d.pd));
+  let lo=Math.min(...vals), hi=Math.max(...vals);
+  if(lo===hi){lo-=lo*0.05||100; hi+=hi*0.05||100}
+  const pad=(hi-lo)*0.12; lo-=pad; hi+=pad;
+  const X=i=>D.length<2 ? (m.l+(W-m.l-m.r)/2) : m.l+(W-m.l-m.r)*i/(D.length-1);
+  const Y=p=>m.t+(H-m.t-m.b)*(1-(p-lo)/(hi-lo));
+  let g='';
+  const ticks=4;
+  for(let k=0;k<=ticks;k++){
+    const v=lo+(hi-lo)*k/ticks, y=Y(v);
+    g+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+y+'" y2="'+y+'" stroke="'+css('--grid')+'" stroke-width="1"/>';
+    g+='<text x="'+(m.l-8)+'" y="'+(y+4)+'" text-anchor="end" fill="'+css('--muted')+'" font-size="11" style="font-variant-numeric:tabular-nums">'+fmt(v)+'</text>';
+  }
+  g+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+(H-m.b)+'" y2="'+(H-m.b)+'" stroke="'+css('--axis')+'" stroke-width="1"/>';
+  const step=Math.max(1,Math.ceil(D.length/6));
+  D.forEach((d,i)=>{
+    if(i%step===0||i===D.length-1){
+      g+='<text x="'+X(i)+'" y="'+(H-m.b+18)+'" text-anchor="middle" fill="'+css('--muted')+'" font-size="11">'+d.t.slice(5,10)+'</text>';
+    }
+  });
+  function path(get){
+    let s='',pen=false;
+    D.forEach((d,i)=>{
+      const v=get(d);
+      if(v==null){pen=false;return}
+      s+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' ';
+      pen=true;
+    });
+    return s;
+  }
+  g+='<path d="'+path(d=>d.p)+'" fill="none" stroke="'+css('--serie1')+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+  g+='<path d="'+path(d=>d.pd)+'" fill="none" stroke="'+css('--serie2')+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+  const pts=[];
+  const dense = D.length>40;
+  D.forEach((d,i)=>{
+    const cx=X(i);
+    pts.push({cx,d,cy:Y(d.p)});
+    if(!dense||i===D.length-1){
+      g+='<circle cx="'+cx+'" cy="'+Y(d.p)+'" r="3.5" fill="'+css('--serie1')+'" stroke="'+css('--surface')+'" stroke-width="2"/>';
+      if(d.pd!=null) g+='<circle cx="'+cx+'" cy="'+Y(d.pd)+'" r="3.5" fill="'+css('--serie2')+'" stroke="'+css('--surface')+'" stroke-width="2"/>';
+    }
+  });
+  const ps=D.map(d=>d.p);
+  const minP=Math.min(...ps), iMin=ps.indexOf(minP);
+  g+='<text x="'+X(iMin)+'" y="'+(Y(minP)+20)+'" text-anchor="middle" fill="'+css('--ink2')+'" font-size="11" font-weight="600">'+fmt(minP)+'</text>';
+  g+='<rect x="'+m.l+'" y="'+m.t+'" width="'+(W-m.l-m.r)+'" height="'+(H-m.t-m.b)+'" fill="transparent"/>';
+  svg.innerHTML=g;
+  return pts;
+}
+let PTS=draw();
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{PTS=draw()});
+svg.addEventListener('mousemove',ev=>{
+  if(!PTS.length) return;
+  const r=svg.getBoundingClientRect(), sx=W/r.width;
+  const x=(ev.clientX-r.left)*sx;
+  let best=PTS[0];
+  for(const p of PTS) if(Math.abs(p.cx-x)<Math.abs(best.cx-x)) best=p;
+  const d=best.d;
+  let htm='<div class="tt">'+d.t+'</div><div class="tp">'+fmt(d.p)+' <span class="tt">más barato'+(d.a?' · '+d.a:'')+'</span></div>';
+  if(d.pd!=null) htm+='<div class="tp">'+fmt(d.pd)+' <span class="tt">directo'+(d.ad?' · '+d.ad:'')+'</span></div>';
+  tip.innerHTML=htm;
+  tip.style.display='block';
+  const wrap=document.getElementById('chartwrap').getBoundingClientRect();
+  let tx=best.cx/sx+12, ty=best.cy/sx-10;
+  tip.style.left=Math.min(tx,wrap.width-tip.offsetWidth-4)+'px';
+  tip.style.top=Math.max(0,ty)+'px';
+});
+svg.addEventListener('mouseleave',()=>{tip.style.display='none'});
+</script>
+</body></html>

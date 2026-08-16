@@ -1,0 +1,9 @@
+{
+  "origen": "GDL",
+  "destino": "IAH,HOU",
+  "fecha_ida": "2026-10-26",
+  "fecha_regreso": "2026-11-18",
+  "moneda": "MXN",
+  "adultos": 1,
+  "precio_alerta": null
+}
